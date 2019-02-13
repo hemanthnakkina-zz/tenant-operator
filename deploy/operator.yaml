@@ -16,7 +16,7 @@ spec:
       containers:
         - name: tenant-operator
           # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: hemanth43/tenant-operator
           command:
           - tenant-operator
           imagePullPolicy: Always
