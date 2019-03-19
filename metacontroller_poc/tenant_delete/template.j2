@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: {{metadata['name']}}
+  generateName: {{metadata['name']}}
+  namespace: argo
+  labels:
+    tenant: {{metadata['name']}}
+  {% if 'labels' in metadata %}
+  {% for key, value in metadata['labels'].items() %}
+    {{key}}: {{value}}
+  {% endfor %}
+  {% endif %}
+spec:
+  entrypoint: tenant-entry-template
+  serviceAccountName: argo
+  templates:
+  - name: tenant-entry-template
+    steps:
+    {% for namespace in spec['namespaces'] -%}
+    - - name: {{namespace['name']}}
+        template: template-namespace-{{namespace['name']}}
+    {% if 'resourcequota' in namespace -%}
+    - - name: {{namespace['resourcequota']['name']}}
+        template: template-quota-{{namespace['resourcequota']['name']}}
+    {%- endif %}
+    {% endfor %}
+
+{% for namespace in spec['namespaces'] %}
+  - name: template-namespace-{{namespace['name']}}
+    resource:
+      action: delete
+      manifest: |
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: {{namespace['name']}}
+          labels:
+            tenant: {{metadata['name']}}
+{% if 'resourcequota' in namespace %}
+  - name: template-quota-{{namespace['resourcequota']['name']}}
+    resource:
+      action: delete
+      manifest: |
+        apiVersion: v1
+        kind: ResourceQuota
+        metadata:
+          name: {{namespace['resourcequota']['name']}}
+          namespace: {{namespace['name']}}
+          labels:
+            tenant: {{metadata['name']}}
+        spec:
+          hard:
+            {% for key, value in namespace['resourcequota'].items() -%}
+            {% if key != 'name' -%}
+            {{key}}: {{value}}
+            {% endif -%}
+            {% endfor -%}
+{% endif %}
+{% endfor %}
+

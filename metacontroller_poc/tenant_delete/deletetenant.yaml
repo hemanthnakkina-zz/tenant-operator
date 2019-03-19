@@ -1,0 +1,20 @@
+apiVersion: tenants.k8s.att.io/v1
+kind: DeleteTenant
+metadata:
+  name: isbcdel
+  labels:
+    tenant: isbcdel
+spec:
+  namespaces:
+  - name: isbc-ns-1
+    resourcequota:
+      name: idbs-rq-1
+      cpu: 15
+      memory: 20Gi
+      pods: 10
+  - name: isbc-ns-2
+    resourcequota:
+      name: isbc-rq-2
+      cpu: 5
+      memory: 10Gi
+      pods: 5

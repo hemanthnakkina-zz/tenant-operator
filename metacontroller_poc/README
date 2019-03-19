@@ -1,0 +1,17 @@
+Providing an Operator to create, update and delete a notion of Tenant.
+The operator uses concepts of metacontroller and argoworkflows.
+
+Different Custlom Resources created for Create/Update/Delete Tenant operations.
+Metacontroller passes the information to corresponding lambda controller which
+creates an argo workflow based on templating.
+
+CreateTenant: metacontroller_poc/tenant_create
+UpdateTenant: metacontroller_poc/tenant_update
+DeleteTenant: metacontroller_poc/tenant_delete
+
+
+This is the first step in making operations easier to create a tenant with different
+Custom resources.
+
+[Ongoing] To have a single Custom Resource which can reference the resources created
+by argo workflow.
