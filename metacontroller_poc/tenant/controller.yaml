@@ -1,0 +1,19 @@
+---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: tenant-controller
+spec:
+  generateSelector: true
+  parentResource:
+    apiVersion: tenants.k8s.att.io/v1
+    resource: tenants
+  childResources:
+  - apiVersion: argoproj.io/v1alpha1
+    resource: workflows
+    updateStrategy:
+      method: InPlace
+  hooks:
+    sync:
+      webhook:
+        url: http://<webhook ip>:7002/sync
