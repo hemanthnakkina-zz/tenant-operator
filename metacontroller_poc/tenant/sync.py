@@ -15,26 +15,31 @@
 # limitations under the License.
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import jinja2
-import json
-import yaml
 
 import copy
+import jinja2
+import json
 import os
 import re
+import yaml
 
 def is_job_finished(job):
   if 'status' in job:
+    status_phase = job['status'].get('phase', "NO_STATUS_PAHSE_YET")
+    if status_phase == "Succeeded":
+      return True
+    """
     desiredNumberScheduled = job['status'].get('desiredNumberScheduled',1)
     numberReady = job['status'].get('numberReady',0)
     if desiredNumberScheduled == numberReady and desiredNumberScheduled > 0:
       return True
+    """
   return False
 
 def new_workflow(job):
 
   wf = {}
-  template_filename = 'template.j2'
+  template_filename = 'templates/template.j2'
   script_path = os.path.dirname(os.path.abspath(__file__))
   template_file_path = os.path.join(script_path, template_filename)
   environment = jinja2.Environment(loader=jinja2.FileSystemLoader(script_path))
@@ -62,7 +67,7 @@ class Controller(BaseHTTPRequestHandler):
       return {'status': desired_status, 'children': []}
 
     # Compute status based on what we observed, before building desired state.
-    # Our .status is just a copy of the DaemonSet .status with extra fields.
+    # Our .status is just a copy of the Argo Workflow .status with extra fields.
     desired_status = copy.deepcopy(children['Workflow.argoproj.io/v1alpha1'].get(child, {}).get('status',{}))
     if is_job_finished(children['Workflow.argoproj.io/v1alpha1'].get(child, {})):
       desired_status['conditions'] = [{'type': 'Complete', 'status': 'True'}]
@@ -87,4 +92,4 @@ class Controller(BaseHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(json.dumps(desired).encode('utf-8'))
 
-HTTPServer(('', 7002), Controller).serve_forever()
+HTTPServer(('', 80), Controller).serve_forever()

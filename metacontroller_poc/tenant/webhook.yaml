@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tenant-controller
+  namespace: metacontroller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tenant-controller
+  template:
+    metadata:
+      labels:
+        app: tenant-controller
+    spec:
+      containers:
+      - name: controller
+        image: hemanth43/python_pyyaml_jinja2:3.5
+        command: ["python3", "/hooks/sync.py"]
+        volumeMounts:
+        - name: hooks
+          mountPath: /hooks
+        - name: argo-template
+          mountPath: /hooks/templates
+      volumes:
+      - name: hooks
+        configMap:
+          name: tenant-controller
+      - name: argo-template
+        configMap:
+          name: tenant-argo-template
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tenant-controller
+  namespace: metacontroller
+spec:
+  selector:
+    app: tenant-controller
+  ports:
+  - port: 80

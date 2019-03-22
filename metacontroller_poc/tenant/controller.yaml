@@ -16,4 +16,4 @@ spec:
   hooks:
     sync:
       webhook:
-        url: http://<webhook ip>:7002/sync
+        url: http://tenant-controller.metacontroller/sync
